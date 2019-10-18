@@ -3,10 +3,16 @@
     "label": {
       "wamp": "wamp",
       "role": "Role",
+      "match": "Topic match",
       "subscriber": {
         "role": {
           "subscriber": "Subscriber",
           "calleeReceiver": "Callee Receiver"
+        },
+        "match":{
+          "exact": "Equals",
+          "prefix": "Starts with",
+          "wildcard": "Wildcard"
         }
       },
       "publisher": {

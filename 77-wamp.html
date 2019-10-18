@@ -15,6 +15,14 @@
         <input type="text" id="node-input-topic" data-i18n="[placeholder]wamp.placeholder.subscriber.destination">
     </div>
     <div class="form-row">
+        <label for="node-input-match"><i class="fa fa-dot-circle-o"></i> <span data-i18n="wamp.label.match"></span></label>
+        <select type="text" id="node-input-match" style="width:70%;">
+            <option value="exact" data-i18n="wamp.label.subscriber.match.exact"></option>
+            <option value="prefix" data-i18n="wamp.label.subscriber.match.prefix"></option>
+            <option value="wildcard" data-i18n="wamp.label.subscriber.match.wildcard"></option>
+        </select>
+    </div>
+    <div class="form-row">
         <label for="node-input-name" style="width: 110px;"><i class="fa fa-tag"></i> <span data-i18n="node-red:common.label.name"></span></label>
         <input type="text" id="node-input-name" data-i18n="[placeholder]node-red:common.label.name">
     </div>
@@ -33,6 +41,7 @@
             role: {value: "subscriber", required: true},
             router: {type: "wamp-client", required: true},
             topic: {value:"", required: true},
+            match: {value:"exact"},
             name: {value:""}
         },
         color:"#79d8bf",

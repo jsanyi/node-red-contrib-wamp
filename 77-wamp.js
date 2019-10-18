@@ -78,6 +78,7 @@ module.exports = function (RED) {
         this.role = config.role;
         this.router = config.router;
         this.topic = config.topic;
+        this.match = config.match || "exact";
 
         this.clientNode = RED.nodes.getNode(this.router);
 
@@ -94,10 +95,15 @@ module.exports = function (RED) {
 
             switch (this.role) {
                 case "subscriber":
-                    node.wampClient.subscribe(this.topic, function (args, kwargs) {
-                        var msg = {topic: this.topic,  payload: {args: args, kwargs: kwargs}};
-                        node.send(msg);
-                    });
+                    console.log("Match: ", this.match);
+                    node.wampClient.subscribe(
+                        this.topic, 
+                        function (args, kwargs, details) {
+                            var msg = {topic: details.topic,  payload: {args: args, kwargs: kwargs}};
+                            node.send(msg);
+                        }, 
+                        { match: this.match }
+                    );
                     break;
                 case "calleeReceiver":
                     node.wampClient.registerProcedure(this.topic, function (args, kwargs) {
@@ -213,12 +219,12 @@ module.exports = function (RED) {
                                     RED.log.warn("publish failed, wamp is not connected.");
                                 }
                             },
-                            subscribe: function (topic, handler) {
+                            subscribe: function (topic, handler, opts) {
                                 RED.log.debug("add to wamp subscribe request for topic: " + topic);
-                                this._subscribeReqMap[topic] = handler;
+                                this._subscribeReqMap[topic] = { handler, opts };
 
                                 if (this._connected && this.wampSession) {
-                                    this._subscribeMap[topic] = this.wampSession.subscribe(topic, handler);
+                                    this._subscribeMap[topic] = this.wampSession.subscribe(topic, handler, opts);
                                 }
                             },
                             // unsubscribe: function (topic) {
@@ -282,7 +288,8 @@ module.exports = function (RED) {
 
                                 obj._subscribeMap = {};
                                 for (var topic in obj._subscribeReqMap) {
-                                    obj.wampSession.subscribe(topic, obj._subscribeReqMap[topic]).then(
+                                    var subscribeReq = obj._subscribeReqMap[topic];
+                                    obj.wampSession.subscribe(topic, subscribeReq.handler, subscribeReq.opts).then(
                                         function (subscription) {
                                             obj._subscribeMap[topic] = subscription;
                                             RED.log.debug("wamp subscribe topic [" +topic + "] success.");
