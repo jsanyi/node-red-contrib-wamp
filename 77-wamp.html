@@ -1,6 +1,6 @@
 <script type="text/x-red" data-template-name="wamp in">
     <div class="form-row">
-        <label for="node-input-role"><i class="fa fa-dot-circle-o"></i> <span data-i18n="wamp.label.role"></span></label>
+        <label for="node-input-role" style="width: 110px;"><i class="fa fa-dot-circle-o"></i> <span data-i18n="wamp.label.role"></span></label>
         <select type="text" id="node-input-role" style="width:70%;">
             <option value="subscriber" data-i18n="wamp.label.subscriber.role.subscriber"></option>
             <option value="calleeReceiver" data-i18n="wamp.label.subscriber.role.calleeReceiver"></option>
@@ -11,11 +11,11 @@
         <input type="text" id="node-input-router">
     </div>
     <div class="form-row">
-        <label for="node-input-topic" style="width: 110px;"><i class="fa fa-envelope"></i> <span data-i18n="wamp.label.destination"></span></label>
+        <label for="node-input-topic" style="width: 110px;"><i class="fa fa-file-text-o"></i> <span data-i18n="wamp.label.destination"></span></label>
         <input type="text" id="node-input-topic" data-i18n="[placeholder]wamp.placeholder.subscriber.destination">
     </div>
     <div class="form-row">
-        <label for="node-input-match"><i class="fa fa-dot-circle-o"></i> <span data-i18n="wamp.label.match"></span></label>
+        <label for="node-input-match" style="width: 110px;"><i class="fa fa-dot-circle-o"></i> <span data-i18n="wamp.label.match"></span></label>
         <select type="text" id="node-input-match" style="width:70%;">
             <option value="exact" data-i18n="wamp.label.subscriber.match.exact"></option>
             <option value="prefix" data-i18n="wamp.label.subscriber.match.prefix"></option>
@@ -55,6 +55,14 @@
         },
         labelStyle: function() { // sets the class to apply to the label
             return this.name?"node_label_italic":"";
+        },
+        oneditprepare: function(){
+            var $selectRole = $('#node-input-role');
+            var $matchRow = $('#node-input-match').closest('.form-row');
+            $selectRole.change( function(){
+                var role = $selectRole.val();
+                $matchRow.toggle( role == 'subscriber' );
+            });
         }
     });
 </script>
@@ -73,7 +81,7 @@
         <input type="text" id="node-input-router">
     </div>
     <div class="form-row">
-        <label for="node-input-topic" style="width: 110px;"><i class="fa fa-envelope"></i> <span data-i18n="wamp.label.destination"></label>
+        <label for="node-input-topic" style="width: 110px;"><i class="fa fa-file-text-o"></i> <span data-i18n="wamp.label.destination"></label>
         <input type="text" id="node-input-topic" data-i18n="[placeholder]wamp.placeholder.publisher.destination">
     </div>
     <div class="form-row">
@@ -120,7 +128,7 @@
         <input type="text" id="node-input-router">
     </div>
     <div class="form-row">
-        <label for="node-input-procedure" style="width: 110px;"><i class="fa fa-envelope"></i> <span data-i18n="wamp.label.procedure"></span></label>
+        <label for="node-input-procedure" style="width: 110px;"><i class="fa fa-file-text-o"></i> <span data-i18n="wamp.label.procedure"></span></label>
         <input type="text" id="node-input-procedure" data-i18n="[placeholder]wamp.placeholder.procedure">
     </div>
     <div class="form-row">
