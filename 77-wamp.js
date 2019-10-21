@@ -28,6 +28,7 @@ module.exports = function (RED) {
         this.router = config.router;
         this.role = config.role;
         this.topic = config.topic;
+        this.topicType = config.topicType;
         this.clientNode = RED.nodes.getNode(this.router);
 
         if (this.clientNode) {
@@ -41,13 +42,25 @@ module.exports = function (RED) {
                 node.status({fill:"red",shape:"ring",text:"node-red:common.status.not-connected"});
             });
 
-            node.on("input", function (msg) {
+            node.on("input", async function (msg) {
                 if (msg.hasOwnProperty("payload")) {
+                    var defTopic = autobahn.when.defer();
+                    defTopic.resolver = (error, value) => {
+                        if(error) {
+                            defTopic.reject(error);
+                        } else {
+                            defTopic.resolve(value);
+                        }
+                    };
+
+                    var syncTopic = RED.util.evaluateNodeProperty(node.topic, node.topicType, node, msg, defTopic.resolver);
+                    var topic = syncTopic || await defTopic.promise;
+
                     var payload = msg.payload;
                     switch (this.role) {
                         case "publisher":
-                            RED.log.info("wamp client publish: topic=" + this.topic + ", payload=" + JSON.stringify(payload));
-                            payload && node.wampClient.publish(this.topic, payload);
+                            RED.log.info("wamp client publish: topic=" + topic + ", payload=" + JSON.stringify(payload));
+                            payload && node.wampClient.publish(topic, payload);
                             break;
                         case "calleeResponse":
                             RED.log.info("wamp client callee response=" + JSON.stringify(payload));
