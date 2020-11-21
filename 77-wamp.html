@@ -152,13 +152,25 @@
     <div class="form-row node-input-router">
         <label for="node-config-input-address"><i class="fa fa-bookmark"></i> <span data-i18n="wamp.label.router"></span></label>
         <input type="text" id="node-config-input-address" data-i18n="[placeholder]wamp.placeholder.router" style="width: 45%;" >
-        <br>
+    </div>
+    <div class="form-row">
         <label for="node-config-input-realm" style="margin-left: 15px; width: 85px; "> <span data-i18n="wamp.label.realm"></span></label>
         <input type="text" id="node-config-input-realm" data-i18n="[placeholder]wamp.placeholder.realm" style="width: 45%;">
     </div>
     <div class="form-row">
-        <label for="node-config-input-name"><i class="fa fa-tag"></i> <span data-i18n="node-red:common.label.name"></span></label>
-        <input type="text" id="node-config-input-name" data-i18n="[placeholder]node-red:common.label.name">
+        <label for="node-config-input-authmethod">AuthMethod</label>
+        <select type="text" id="node-config-input-authmethod" style="width:70%;">
+            <option value="anonymous">anonymous</option>
+            <option value="ticket">ticket</option>
+        </select>
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-authid">AuthId</label>
+        <input type="text" id="node-config-input-authid">
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-secret">Secret</label>
+        <input type="password" id="node-config-input-secret">
     </div>
 </script>
 
@@ -166,9 +178,11 @@
     RED.nodes.registerType('wamp-client',{
         category: 'config',      // the palette category
         defaults: {             // defines the editable properties of the node
-            address: {required: true},
-            realm: {required: true},
-            name: {}
+            address: { required: true },
+            realm: { required: true },
+            authmethod: { value: "anonymous", required: true },
+            authid: {},
+            secret: {}
         },
         label: function() {     // sets the default label contents
             return (this.name?this.name:this.realm+"@"+this.address);
