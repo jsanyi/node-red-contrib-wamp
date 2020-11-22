@@ -298,21 +298,32 @@ module.exports = function (RED) {
                             obj._connecting = true;
                             obj._connected = false;
                             obj._emitter.emit("closed");
-                            var options = {
-
-                                transports: [{
-                                    url: address,
-                                    type: 'websocket'
-                                }],
-                                realm: realm,
-                                retry_if_unreachable: true,
-                                max_retries: -1,
-                                authmethods: [authmethod],
-                                authid: authid,
-                                onchallenge: function () {
-                                    return secret;
-                                }
-                            };
+                            if (authmethod !== "none") {
+                                var options = {
+                                    transports: [{
+                                        url: address,
+                                        type: 'websocket'
+                                    }],
+                                    realm: realm,
+                                    retry_if_unreachable: true,
+                                    max_retries: -1,
+                                    authmethods: [authmethod],
+                                    authid: authid,
+                                    onchallenge: function () {
+                                        return secret;
+                                    }
+                                };
+                            } else {
+                                var options = {
+                                    transports: [{
+                                        url: address,
+                                        type: 'websocket'
+                                    }],
+                                    realm: realm,
+                                    retry_if_unreachable: true,
+                                    max_retries: -1,
+                                };
+                            }
                             obj.wampConnection = new autobahn.Connection(options);
 
                             obj.wampConnection.onopen = function (session) {
