@@ -17,6 +17,7 @@
       },
       "router": "Router",
       "destination": "Destination",
+      "match": "Match",
       "procedure": "Procedure",
       "realm": "Realm"
     },
