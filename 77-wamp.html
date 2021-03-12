@@ -23,6 +23,10 @@
         </select>
     </div>
     <div class="form-row">
+        <label for="node-input-getretained" style="width: 110px;"><i class="fa fa-envelope"></i> <span data-i18n="wamp.label.getretained"></span></label>
+        <input type="checkbox" id="node-input-getretained">
+    </div>
+    <div class="form-row">
         <label for="node-input-name" style="width: 110px;"><i class="fa fa-tag"></i> <span data-i18n="node-red:common.label.name"></span></label>
         <input type="text" id="node-input-name" data-i18n="[placeholder]node-red:common.label.name">
     </div>
@@ -42,6 +46,7 @@
             router: {type: "wamp-client", required: true},
             topic: {value:"", required: true},
             match: {value: "exact", required: true },
+            getretained: {value: true, required: true },
             name: {value:""}
         },
         color:"#79d8bf",

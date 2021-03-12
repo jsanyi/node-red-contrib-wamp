@@ -92,6 +92,7 @@ module.exports = function (RED) {
         this.router = config.router;
         this.topic = config.topic;
         this.match = config.match;
+        this.getretained = config.getretained;
 
         this.clientNode = RED.nodes.getNode(this.router);
 
@@ -126,7 +127,7 @@ module.exports = function (RED) {
                             details: details
                         };
                         node.send(msg);
-                    }, { "match": this.match });
+                    }, { "match": this.match, "get_retained": this.getretained });
                     break;
                 case "calleeReceiver":
                     node.wampClient.registerProcedure(this.topic, (args, kwargs, details) => {

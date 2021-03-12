@@ -18,6 +18,7 @@
       "router": "Router",
       "destination": "Destination",
       "match": "Match",
+      "getretained": "Get retained",
       "procedure": "Procedure",
       "realm": "Realm"
     },
