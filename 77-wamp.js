@@ -127,7 +127,7 @@ module.exports = function (RED) {
                             details: details
                         };
                         node.send(msg);
-                    }, { "match": this.match, "get_retained": this.getretained });
+                    }, { "match": this.match, "get_retained": this.getretained }, node.id);
                     break;
                 case "calleeReceiver":
                     node.wampClient.registerProcedure(this.topic, (args, kwargs, details) => {
@@ -143,7 +143,7 @@ module.exports = function (RED) {
                         };
                         node.send(msg);
                         return d.promise;
-                    }, { "match": this.match });
+                    }, { "match": this.match }, node.id);
                     break;
                 default:
                     RED.log.error("the role [" + this.role + "] is not recognized.");
@@ -253,11 +253,11 @@ module.exports = function (RED) {
                                     RED.log.warn("publish failed, wamp is not connected.");
                                 }
                             },
-                            subscribe: function (topic, handler, options) {
-                                this._subscribeReqMap[topic] = { handler, options };
+                            subscribe: function (topic, handler, options, id) {
+                                this._subscribeReqMap[id] = { topic, handler, options };
 
                                 if (this._connected && this.wampSession) {
-                                    this._subscribeMap[topic] = this.wampSession.subscribe(topic, handler, options);
+                                    this._subscribeMap[id] = this.wampSession.subscribe(topic, handler, options);
                                 }
                             },
                             // unsubscribe: function (topic) {
@@ -273,11 +273,11 @@ module.exports = function (RED) {
                             //     delete this._subscribeMap[topic];
                             // }
                             // },
-                            registerProcedure: function (procedure, handler, options) {
-                                this._procedureReqMap[procedure] = { handler, options };
+                            registerProcedure: function (procedure, handler, options, id) {
+                                this._procedureReqMap[id] = { procedure, handler, options };
 
                                 if (this._connected && this.wampSession) {
-                                    this._procedureMap[procedure] = this.wampSession.subscribe(procedure, handler, options);
+                                    this._procedureMap[id] = this.wampSession.subscribe(procedure, handler, options);
                                 }
                             },
                             callProcedure: function (procedure, args, kwargs, options) {
@@ -335,27 +335,27 @@ module.exports = function (RED) {
                                 obj._emitter.emit("ready");
 
                                 obj._subscribeMap = {};
-                                for (const topic in obj._subscribeReqMap) {
-                                    obj.wampSession.subscribe(topic, obj._subscribeReqMap[topic].handler, obj._subscribeReqMap[topic].options).then(
+                                for (const id in obj._subscribeReqMap) {
+                                    obj.wampSession.subscribe(obj._subscribeReqMap[id].topic, obj._subscribeReqMap[id].handler, obj._subscribeReqMap[id].options).then(
                                         function (subscription) {
-                                            obj._subscribeMap[topic] = subscription;
-                                            RED.log.info("wamp subscribe topic [" + topic + " (" + obj._subscribeReqMap[topic].options.match + ")] success.");
+                                            obj._subscribeMap[id] = subscription;
+                                            RED.log.info("wamp subscribe node [" + id + "], topic [" + obj._subscribeReqMap[id].topic + " (" + obj._subscribeReqMap[id].options.match + ")] success.");
                                         },
                                         function (err) {
-                                            RED.log.warn("wamp subscribe topic [" + topic + " (" + obj._subscribeReqMap[topic].options.match + ")] failed: " + err);
+                                            RED.log.warn("wamp subscribe node [" + id + "], topic [" + obj._subscribeReqMap[id].topic + " (" + obj._subscribeReqMap[id].options.match + ")] failed: " + err);
                                         }
                                     )
                                 }
 
                                 obj._procedureMap = {};
-                                for (const procedure in obj._procedureReqMap) {
-                                    obj.wampSession.register(procedure, obj._procedureReqMap[procedure].handler,  obj._procedureReqMap[procedure].options).then(
+                                for (const id in obj._procedureReqMap) {
+                                    obj.wampSession.register(obj._procedureReqMap[id].procedure, obj._procedureReqMap[id].handler, obj._procedureReqMap[id].options).then(
                                         function (registration) {
                                             obj._procedureMap[procedure] = registration;
-                                            RED.log.info("wamp register procedure [" + procedure + " (" + obj._procedureReqMap[procedure].options.match + ")] success.");
+                                            RED.log.info("wamp register node [" + id + "], procedure [" + obj._procedureReqMap[id].procedure + " (" + obj._procedureReqMap[id].options.match + ")] success.");
                                         },
                                         function (err) {
-                                            RED.log.warn("wamp register procedure [" + procedure + " (" + obj._procedureReqMap[procedure].options.match + ")] failed: " + err.error);
+                                            RED.log.warn("wamp register node [" + id + "], procedure [" + obj._procedureReqMap[id].procedure + " (" + obj._procedureReqMap[id].options.match + ")] failed: " + err.error);
                                         }
                                     )
                                 }
