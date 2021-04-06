@@ -351,7 +351,7 @@ module.exports = function (RED) {
                                 for (const id in obj._procedureReqMap) {
                                     obj.wampSession.register(obj._procedureReqMap[id].procedure, obj._procedureReqMap[id].handler, obj._procedureReqMap[id].options).then(
                                         function (registration) {
-                                            obj._procedureMap[procedure] = registration;
+                                            obj._procedureMap[id] = registration;
                                             RED.log.info("wamp register node [" + id + "], procedure [" + obj._procedureReqMap[id].procedure + " (" + obj._procedureReqMap[id].options.match + ")] success.");
                                         },
                                         function (err) {
