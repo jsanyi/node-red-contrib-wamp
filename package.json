@@ -1,6 +1,6 @@
 {
-  "name": "node-red-contrib-wamp",
-  "version": "0.0.7",
+  "name": "@lz129/node-red-contrib-wamp",
+  "version": "1.0.0",
   "description": "Node-RED nodes to talk to WAMP",
   "dependencies": {
     "autobahn": "20.9.2"
