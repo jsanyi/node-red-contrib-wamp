@@ -202,7 +202,7 @@ module.exports = function (RED) {
                                 });
                             },
                             function (err) {
-                                RED.log.warn("call response failed: " + err.error + "/" + this.procedure);
+                                RED.log.warn(JSON.stringify(err));
                             }
                         )
                     }
