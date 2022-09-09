@@ -15,6 +15,18 @@
         <input type="text" id="node-input-topic" data-i18n="[placeholder]wamp.placeholder.subscriber.destination">
     </div>
     <div class="form-row">
+        <label for="node-input-match" style="width: 110px;"><i class="fa fa-envelope"></i> <span data-i18n="wamp.label.match"></span></label>
+        <select type="text" id="node-input-match" style="width:70%;">
+            <option value="exact">exact</option>
+            <option value="prefix">prefix</option>
+            <option value="wildcard">wildcard</option>
+        </select>
+    </div>
+    <div class="form-row">
+        <label for="node-input-getretained" style="width: 110px;"><i class="fa fa-envelope"></i> <span data-i18n="wamp.label.getretained"></span></label>
+        <input type="checkbox" id="node-input-getretained">
+    </div>
+    <div class="form-row">
         <label for="node-input-name" style="width: 110px;"><i class="fa fa-tag"></i> <span data-i18n="node-red:common.label.name"></span></label>
         <input type="text" id="node-input-name" data-i18n="[placeholder]node-red:common.label.name">
     </div>
@@ -33,6 +45,8 @@
             role: {value: "subscriber", required: true},
             router: {type: "wamp-client", required: true},
             topic: {value:"", required: true},
+            match: {value: "exact", required: true },
+            getretained: {value: true, required: true },
             name: {value:""}
         },
         color:"#79d8bf",
@@ -123,6 +137,51 @@
 <script type="text/x-red" data-help-name="wamp call">
    <p>Provides a connection to other WAMP client.</p>
    <p>Only the <code>msg.payload</code> is sent.</p>
+
+   
+   <h3>Inputs</h3>
+       <dl class="message-properties">
+           <dt>payload
+               <span class="property-type">string | buffer</span>
+           </dt>
+           <dd> the payload of the message to publish. </dd>
+           <dt class="optional">topic <span class="property-type">string</span></dt>
+           <dd> the MQTT topic to publish to.</dd>
+       </dl>
+   
+    <h3>Outputs</h3>
+        <ol class="node-ports">
+            <li>Standard output
+                <dl class="message-properties">
+                    <dt>payload <span class="property-type">string</span></dt>
+                    <dd>the standard output of the command.</dd>
+                </dl>
+            </li>
+            <li>Standard error
+                <dl class="message-properties">
+                    <dt>payload <span class="property-type">string</span></dt>
+                    <dd>the standard error of the command.</dd>
+                </dl>
+            </li>
+        </ol>
+   
+   <h3>Details</h3>
+       <p><code>msg.payload</code> is used as the payload of the published message.
+       If it contains an Object it will be converted to a JSON string before being sent.
+       If it contains a binary Buffer the message will be published as-is.</p>
+       <p>The topic used can be configured in the node or, if left blank, can be set
+       by <code>msg.topic</code>.</p>
+       <p>Likewise the QoS and retain values can be configured in the node or, if left
+       blank, set by <code>msg.qos</code> and <code>msg.retain</code> respectively.</p>
+   
+   <h3>References</h3>
+       <ul>
+           <li><a>Twitter API docs</a> - full description of <code>msg.tweet</code> property</li>
+           <li><a>GitHub</a> - the nodes github repository</li>
+       </ul>
+   </script>
+
+
 </script>
 
 <script type="text/javascript">
@@ -152,23 +211,89 @@
     <div class="form-row node-input-router">
         <label for="node-config-input-address"><i class="fa fa-bookmark"></i> <span data-i18n="wamp.label.router"></span></label>
         <input type="text" id="node-config-input-address" data-i18n="[placeholder]wamp.placeholder.router" style="width: 45%;" >
-        <br>
+    </div>
+    <div class="form-row">
         <label for="node-config-input-realm" style="margin-left: 15px; width: 85px; "> <span data-i18n="wamp.label.realm"></span></label>
         <input type="text" id="node-config-input-realm" data-i18n="[placeholder]wamp.placeholder.realm" style="width: 45%;">
     </div>
     <div class="form-row">
-        <label for="node-config-input-name"><i class="fa fa-tag"></i> <span data-i18n="node-red:common.label.name"></span></label>
-        <input type="text" id="node-config-input-name" data-i18n="[placeholder]node-red:common.label.name">
+        <label for="node-config-input-authmethod">AuthMethod</label>
+        <select type="text" id="node-config-input-authmethod" style="width:70%;">
+            <option value="none">none</option>
+            <option value="anonymous">anonymous</option>
+            <option value="ticket">ticket</option>
+        </select>
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-authid">AuthId</label>
+        <input type="text" id="node-config-input-authid">
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-secret">Secret</label>
+        <input type="password" id="node-config-input-secret">
     </div>
 </script>
+
+
+<script type="text/x-red" data-help-name="wamp-client">
+    <p>WAMP client configuration</p>
+    <p>Only the <code>msg.payload</code> is sent.</p>
+ 
+    
+    <h3>Inputs</h3>
+        <dl class="message-properties">
+            <dt>payload
+                <span class="property-type">string | buffer</span>
+            </dt>
+            <dd> the payload of the message to publish. </dd>
+            <dt class="optional">topic <span class="property-type">string</span></dt>
+            <dd> the MQTT topic to publish to.</dd>
+        </dl>
+    
+     <h3>Outputs</h3>
+         <ol class="node-ports">
+             <li>Standard output
+                 <dl class="message-properties">
+                     <dt>payload <span class="property-type">string</span></dt>
+                     <dd>the standard output of the command.</dd>
+                 </dl>
+             </li>
+             <li>Standard error
+                 <dl class="message-properties">
+                     <dt>payload <span class="property-type">string</span></dt>
+                     <dd>the standard error of the command.</dd>
+                 </dl>
+             </li>
+         </ol>
+    
+    <h3>Details</h3>
+        <p><code>msg.payload</code> is used as the payload of the published message.
+        If it contains an Object it will be converted to a JSON string before being sent.
+        If it contains a binary Buffer the message will be published as-is.</p>
+        <p>The topic used can be configured in the node or, if left blank, can be set
+        by <code>msg.topic</code>.</p>
+        <p>Likewise the QoS and retain values can be configured in the node or, if left
+        blank, set by <code>msg.qos</code> and <code>msg.retain</code> respectively.</p>
+    
+    <h3>References</h3>
+        <ul>
+            <li><a>Twitter API docs</a> - full description of <code>msg.tweet</code> property</li>
+            <li><a>GitHub</a> - the nodes github repository</li>
+        </ul>
+    </script>
+ 
+ 
+ </script>
 
 <script type="text/javascript">
     RED.nodes.registerType('wamp-client',{
         category: 'config',      // the palette category
         defaults: {             // defines the editable properties of the node
-            address: {required: true},
-            realm: {required: true},
-            name: {}
+            address: { required: true },
+            realm: { required: true },
+            authmethod: { value: "anonymous", required: true },
+            authid: {},
+            secret: {}
         },
         label: function() {     // sets the default label contents
             return (this.name?this.name:this.realm+"@"+this.address);
