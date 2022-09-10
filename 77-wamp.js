@@ -31,6 +31,7 @@ module.exports = function (RED) {
         this.router = config.router;
         this.role = config.role;
         this.topic = config.topic;
+        this.topicType = config.topicType;
         this.clientNode = RED.nodes.getNode(this.router);
 
         if (this.clientNode) {
@@ -52,16 +53,25 @@ module.exports = function (RED) {
                 });
             });
 
-            node.on("input", function (msg) {
+            node.on("input", async function (msg) {
                 if (msg.hasOwnProperty("payload")) {
-                    const args = msg.payload.args
-                    const kwargs = msg.payload.kwargs
-                    const topic = msg.topic || this.topic
-                    const options = msg.options
+                    var defTopic = autobahn.when.defer();
+                    defTopic.resolver = (error, value) => {
+                        if(error) {
+                            defTopic.reject(error);
+                        } else {
+                            defTopic.resolve(value);
+                        }
+                    };
 
+                    var syncTopic = RED.util.evaluateNodeProperty(node.topic, node.topicType, node, msg, defTopic.resolver);
+                    var topic = syncTopic || await defTopic.promise;
+
+                    var payload = msg.payload;
                     switch (this.role) {
                         case "publisher":
-                            node.wampClient.publish(topic, args, kwargs, options);
+                            RED.log.info("wamp client publish: topic=" + topic + ", payload=" + JSON.stringify(payload));
+                            payload && node.wampClient.publish(topic, payload);
                             break;
                         case "calleeResponse":
                             msg._d && msg._d.resolve(msg.payload);
@@ -91,8 +101,7 @@ module.exports = function (RED) {
         this.role = config.role;
         this.router = config.router;
         this.topic = config.topic;
-        this.match = config.match;
-        this.getretained = config.getretained;
+        this.match = config.match || "exact";
 
         this.clientNode = RED.nodes.getNode(this.router);
 
@@ -117,17 +126,15 @@ module.exports = function (RED) {
 
             switch (this.role) {
                 case "subscriber":
-                    node.wampClient.subscribe(this.topic, (args, kwargs, details) => {
-                        const msg = {
-                            topic: this.topic,
-                            payload: {
-                                args: args,
-                                kwargs: kwargs
-                            },
-                            details: details
-                        };
-                        node.send(msg);
-                    }, { "match": this.match, "get_retained": this.getretained }, node.id);
+                    console.log("Match: ", this.match);
+                    node.wampClient.subscribe(
+                        this.topic, 
+                        function (args, kwargs, details) {
+                            var msg = {topic: details.topic,  payload: {args: args, kwargs: kwargs}};
+                            node.send(msg);
+                        }, 
+                        { match: this.match }
+                    );
                     break;
                 case "calleeReceiver":
                     node.wampClient.registerProcedure(this.topic, (args, kwargs, details) => {
@@ -253,11 +260,12 @@ module.exports = function (RED) {
                                     RED.log.warn("publish failed, wamp is not connected.");
                                 }
                             },
-                            subscribe: function (topic, handler, options, id) {
-                                this._subscribeReqMap[id] = { topic, handler, options };
+                            subscribe: function (topic, handler, opts) {
+                                RED.log.debug("add to wamp subscribe request for topic: " + topic);
+                                this._subscribeReqMap[topic] = { handler, opts };
 
                                 if (this._connected && this.wampSession) {
-                                    this._subscribeMap[id] = this.wampSession.subscribe(topic, handler, options);
+                                    this._subscribeMap[topic] = this.wampSession.subscribe(topic, handler, opts);
                                 }
                             },
                             // unsubscribe: function (topic) {
@@ -335,8 +343,9 @@ module.exports = function (RED) {
                                 obj._emitter.emit("ready");
 
                                 obj._subscribeMap = {};
-                                for (const id in obj._subscribeReqMap) {
-                                    obj.wampSession.subscribe(obj._subscribeReqMap[id].topic, obj._subscribeReqMap[id].handler, obj._subscribeReqMap[id].options).then(
+                                for (var topic in obj._subscribeReqMap) {
+                                    var subscribeReq = obj._subscribeReqMap[topic];
+                                    obj.wampSession.subscribe(topic, subscribeReq.handler, subscribeReq.opts).then(
                                         function (subscription) {
                                             obj._subscribeMap[id] = subscription;
                                             RED.log.info("wamp subscribe node [" + id + "], topic [" + obj._subscribeReqMap[id].topic + " (" + obj._subscribeReqMap[id].options.match + ")] success.");

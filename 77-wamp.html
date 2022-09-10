@@ -1,6 +1,6 @@
 <script type="text/x-red" data-template-name="wamp in">
     <div class="form-row">
-        <label for="node-input-role"><i class="fa fa-dot-circle-o"></i> <span data-i18n="wamp.label.role"></span></label>
+        <label for="node-input-role" style="width: 110px;"><i class="fa fa-dot-circle-o"></i> <span data-i18n="wamp.label.role"></span></label>
         <select type="text" id="node-input-role" style="width:70%;">
             <option value="subscriber" data-i18n="wamp.label.subscriber.role.subscriber"></option>
             <option value="calleeReceiver" data-i18n="wamp.label.subscriber.role.calleeReceiver"></option>
@@ -11,20 +11,16 @@
         <input type="text" id="node-input-router">
     </div>
     <div class="form-row">
-        <label for="node-input-topic" style="width: 110px;"><i class="fa fa-envelope"></i> <span data-i18n="wamp.label.destination"></span></label>
+        <label for="node-input-topic" style="width: 110px;"><i class="fa fa-file-text-o"></i> <span data-i18n="wamp.label.destination"></span></label>
         <input type="text" id="node-input-topic" data-i18n="[placeholder]wamp.placeholder.subscriber.destination">
     </div>
     <div class="form-row">
-        <label for="node-input-match" style="width: 110px;"><i class="fa fa-envelope"></i> <span data-i18n="wamp.label.match"></span></label>
+        <label for="node-input-match" style="width: 110px;"><i class="fa fa-dot-circle-o"></i> <span data-i18n="wamp.label.match"></span></label>
         <select type="text" id="node-input-match" style="width:70%;">
-            <option value="exact">exact</option>
-            <option value="prefix">prefix</option>
-            <option value="wildcard">wildcard</option>
+            <option value="exact" data-i18n="wamp.label.subscriber.match.exact"></option>
+            <option value="prefix" data-i18n="wamp.label.subscriber.match.prefix"></option>
+            <option value="wildcard" data-i18n="wamp.label.subscriber.match.wildcard"></option>
         </select>
-    </div>
-    <div class="form-row">
-        <label for="node-input-getretained" style="width: 110px;"><i class="fa fa-envelope"></i> <span data-i18n="wamp.label.getretained"></span></label>
-        <input type="checkbox" id="node-input-getretained">
     </div>
     <div class="form-row">
         <label for="node-input-name" style="width: 110px;"><i class="fa fa-tag"></i> <span data-i18n="node-red:common.label.name"></span></label>
@@ -45,8 +41,7 @@
             role: {value: "subscriber", required: true},
             router: {type: "wamp-client", required: true},
             topic: {value:"", required: true},
-            match: {value: "exact", required: true },
-            getretained: {value: true, required: true },
+            match: {value:"exact"},
             name: {value:""}
         },
         color:"#79d8bf",
@@ -60,6 +55,14 @@
         },
         labelStyle: function() { // sets the class to apply to the label
             return this.name?"node_label_italic":"";
+        },
+        oneditprepare: function(){
+            var $selectRole = $('#node-input-role');
+            var $matchRow = $('#node-input-match').closest('.form-row');
+            $selectRole.change( function(){
+                var role = $selectRole.val();
+                $matchRow.toggle( role == 'subscriber' );
+            });
         }
     });
 </script>
@@ -67,7 +70,7 @@
 
 <script type="text/x-red" data-template-name="wamp out">
     <div class="form-row">
-        <label for="node-input-role"><i class="fa fa-dot-circle-o"></i> <span data-i18n="wamp.label.role"></span></label>
+        <label for="node-input-role" style="width: 110px;"><i class="fa fa-dot-circle-o"></i> <span data-i18n="wamp.label.role"></span></label>
         <select type="text" id="node-input-role" style="width:70%;">
             <option value="publisher" data-i18n="wamp.label.publisher.role.publisher"></option>
             <option value="calleeResponse" data-i18n="wamp.label.publisher.role.calleeResponse"></option>
@@ -78,8 +81,9 @@
         <input type="text" id="node-input-router">
     </div>
     <div class="form-row">
-        <label for="node-input-topic" style="width: 110px;"><i class="fa fa-envelope"></i> <span data-i18n="wamp.label.destination"></label>
+        <label for="node-input-topic" style="width: 110px;"><i class="fa fa-file-text-o"></i> <span data-i18n="wamp.label.destination"></label>
         <input type="text" id="node-input-topic" data-i18n="[placeholder]wamp.placeholder.publisher.destination">
+        <input type="hidden" id="node-input-topicType">
     </div>
     <div class="form-row">
         <label for="node-input-name" style="width: 110px;"><i class="fa fa-tag"></i> <span data-i18n="node-red:common.label.name"></span></label>
@@ -100,6 +104,7 @@
             role: {value: "publisher", required: true},
             router: {type: "wamp-client", required: true},
             topic: {value:"", required: false},
+            topicType: {value:"str", required: false},
             name: {value:""}
         },
         color:"#79d8bf",
@@ -113,6 +118,13 @@
         },
         labelStyle: function() { // sets the class to apply to the label
             return this.name?"node_label_italic":"";
+        },
+        oneditprepare: function(){
+            $('#node-input-topic').typedInput({
+                default: "str",
+                types: ["flow", "global", "msg", "str", "jsonata"],
+                typeField: $("#node-input-topicType")
+            });
         }
     });
 </script>
@@ -125,7 +137,7 @@
         <input type="text" id="node-input-router">
     </div>
     <div class="form-row">
-        <label for="node-input-procedure" style="width: 110px;"><i class="fa fa-envelope"></i> <span data-i18n="wamp.label.procedure"></span></label>
+        <label for="node-input-procedure" style="width: 110px;"><i class="fa fa-file-text-o"></i> <span data-i18n="wamp.label.procedure"></span></label>
         <input type="text" id="node-input-procedure" data-i18n="[placeholder]wamp.placeholder.procedure">
     </div>
     <div class="form-row">
@@ -233,6 +245,57 @@
         <input type="password" id="node-config-input-secret">
     </div>
 </script>
+
+
+<script type="text/x-red" data-help-name="wamp-client">
+    <p>WAMP client configuration</p>
+    <p>Only the <code>msg.payload</code> is sent.</p>
+ 
+    
+    <h3>Inputs</h3>
+        <dl class="message-properties">
+            <dt>payload
+                <span class="property-type">string | buffer</span>
+            </dt>
+            <dd> the payload of the message to publish. </dd>
+            <dt class="optional">topic <span class="property-type">string</span></dt>
+            <dd> the MQTT topic to publish to.</dd>
+        </dl>
+    
+     <h3>Outputs</h3>
+         <ol class="node-ports">
+             <li>Standard output
+                 <dl class="message-properties">
+                     <dt>payload <span class="property-type">string</span></dt>
+                     <dd>the standard output of the command.</dd>
+                 </dl>
+             </li>
+             <li>Standard error
+                 <dl class="message-properties">
+                     <dt>payload <span class="property-type">string</span></dt>
+                     <dd>the standard error of the command.</dd>
+                 </dl>
+             </li>
+         </ol>
+    
+    <h3>Details</h3>
+        <p><code>msg.payload</code> is used as the payload of the published message.
+        If it contains an Object it will be converted to a JSON string before being sent.
+        If it contains a binary Buffer the message will be published as-is.</p>
+        <p>The topic used can be configured in the node or, if left blank, can be set
+        by <code>msg.topic</code>.</p>
+        <p>Likewise the QoS and retain values can be configured in the node or, if left
+        blank, set by <code>msg.qos</code> and <code>msg.retain</code> respectively.</p>
+    
+    <h3>References</h3>
+        <ul>
+            <li><a>Twitter API docs</a> - full description of <code>msg.tweet</code> property</li>
+            <li><a>GitHub</a> - the nodes github repository</li>
+        </ul>
+    </script>
+ 
+ 
+ </script>
 
 
 <script type="text/x-red" data-help-name="wamp-client">

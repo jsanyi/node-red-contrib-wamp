@@ -15,7 +15,7 @@
     "wamp"
   ],
   "node-red": {
-    "version": ">=0.14.0",
+    "version": ">=1.0.0",
     "nodes": {
       "wampConnection": "77-wamp.js"
     }
