@@ -2,8 +2,8 @@ module.exports = function (RED) {
     "use strict";
     const events = require("events");
     const autobahn = require("autobahn");
-    const settings = RED.settings;
 
+    // #region wamp-client
     function WampClientNode(config) {
         RED.nodes.createNode(this, config);
 
@@ -12,9 +12,10 @@ module.exports = function (RED) {
         this.authmethod = config.authmethod;
         this.authid = config.authid;
         this.secret = config.secret;
+        this.maxretrydelay = config.maxretrydelay;
 
         this.wampClient = function () {
-            return wampClientPool.get(this.address, this.realm, this.authmethod, this.authid, this.secret);
+            return wampClientPool.get(this.address, this.realm, this.authmethod, this.authid, this.secret, this.maxretrydelay);
         };
 
         this.on = function (a, b) {
@@ -25,13 +26,16 @@ module.exports = function (RED) {
         }
     }
     RED.nodes.registerType("wamp-client", WampClientNode);
+    // #endregion
 
+    // #region wamp-out
     function WampClientOutNode(config) {
         RED.nodes.createNode(this, config);
         this.router = config.router;
         this.role = config.role;
         this.topic = config.topic;
         this.topicType = config.topicType;
+
         this.clientNode = RED.nodes.getNode(this.router);
 
         if (this.clientNode) {
@@ -57,7 +61,7 @@ module.exports = function (RED) {
                 if (msg.hasOwnProperty("payload")) {
                     var defTopic = autobahn.when.defer();
                     defTopic.resolver = (error, value) => {
-                        if(error) {
+                        if (error) {
                             defTopic.reject(error);
                         } else {
                             defTopic.resolve(value);
@@ -71,10 +75,18 @@ module.exports = function (RED) {
                     switch (this.role) {
                         case "publisher":
                             RED.log.info("wamp client publish: topic=" + topic + ", payload=" + JSON.stringify(payload));
-                            payload && node.wampClient.publish(topic, payload);
+                            var args = [], kwargs = {};
+                            if (typeof payload === 'object' && !Array.isArray(payload) && payload !== null) {
+                                kwargs = payload;
+                            } else if (Array.isArray(payload)) {
+                                args = payload;
+                            } else {
+                                args = [payload];
+                            }
+                            node.wampClient.publish(topic, args, kwargs);
                             break;
                         case "calleeResponse":
-                            msg._d && msg._d.resolve(msg.payload);
+                            msg._d && msg._d.resolve(payload);
                             break;
                         default:
                             RED.log.error("the role [" + this.role + "] is not recognized.");
@@ -95,7 +107,9 @@ module.exports = function (RED) {
         });
     }
     RED.nodes.registerType("wamp out", WampClientOutNode);
+    // #endregion
 
+    // #region wamp-in
     function WampClientInNode(config) {
         RED.nodes.createNode(this, config);
         this.role = config.role;
@@ -126,14 +140,19 @@ module.exports = function (RED) {
 
             switch (this.role) {
                 case "subscriber":
-                    console.log("Match: ", this.match);
                     node.wampClient.subscribe(
-                        this.topic, 
+                        this.topic,
                         function (args, kwargs, details) {
-                            var msg = {topic: details.topic,  payload: {args: args, kwargs: kwargs}};
+                            var msg = {
+                                topic: details.topic,
+                                payload: {
+                                    args: args,
+                                    kwargs: kwargs
+                                }
+                            };
                             node.send(msg);
-                        }, 
-                        { match: this.match }
+                        },
+                        { match: this.match }, node.id
                     );
                     break;
                 case "calleeReceiver":
@@ -169,8 +188,9 @@ module.exports = function (RED) {
         });
     }
     RED.nodes.registerType("wamp in", WampClientInNode);
+    // #endregion
 
-
+    // #region wamp-call
     function WampClientCallNode(config) {
         RED.nodes.createNode(this, config);
         this.router = config.router;
@@ -199,7 +219,9 @@ module.exports = function (RED) {
 
             node.on("input", function (msg) {
                 if (this.procedure) {
-                    const d = node.wampClient.callProcedure(this.procedure, msg.payload.args, msg.payload.kwargs, msg.options);
+                    var args = msg.payload.args === undefined ? [] : msg.payload.args;
+                    var kwargs = msg.payload.kwargs === undefined ? {} : msg.payload.kwargs;
+                    const d = node.wampClient.callProcedure(this.procedure, args, kwargs, msg.options);
                     if (d) {
                         d.then(
                             function (resp) {
@@ -228,11 +250,13 @@ module.exports = function (RED) {
         });
     }
     RED.nodes.registerType("wamp call", WampClientCallNode);
+    // #endregion
 
+    // #region wamp-client-pool
     const wampClientPool = (function () {
         const connections = {};
         return {
-            get: function (address, realm, authmethod, authid, secret) {
+            get: function (address, realm, authmethod, authid, secret, maxretrydelay) {
                 const uri = realm + "@" + address;
                 if (!connections[uri]) {
                     connections[uri] = (function () {
@@ -260,12 +284,20 @@ module.exports = function (RED) {
                                     RED.log.warn("publish failed, wamp is not connected.");
                                 }
                             },
-                            subscribe: function (topic, handler, opts) {
+                            subscribe: function (topic, handler, options, id) {
                                 RED.log.debug("add to wamp subscribe request for topic: " + topic);
-                                this._subscribeReqMap[topic] = { handler, opts };
+                                this._subscribeReqMap[id] = { topic, handler, options };
 
                                 if (this._connected && this.wampSession) {
-                                    this._subscribeMap[topic] = this.wampSession.subscribe(topic, handler, opts);
+                                    this.wampSession.subscribe(topic, handler, options).then(
+                                        function (subscription) {
+                                            this._subscribeMap[id] = subscription; 
+                                            RED.log.info("wamp subscribe node [" + id + "], topic [" + topic + " (" + options.match + ")] success.");
+                                        },
+                                        function (err) {
+                                            RED.log.warn("wamp subscribe node [" + id + "], topic [" + topic + " (" + options.match + ")] failed: " + err);
+                                        }
+                                    )
                                 }
                             },
                             // unsubscribe: function (topic) {
@@ -307,31 +339,21 @@ module.exports = function (RED) {
                             obj._connecting = true;
                             obj._connected = false;
                             obj._emitter.emit("closed");
-                            let options;
+                            let options = {
+                                transports: [{
+                                    url: address,
+                                    type: 'websocket'
+                                }],
+                                realm: realm,
+                                retry_if_unreachable: true,
+                                max_retries: -1,
+                                max_retry_delay: maxretrydelay,
+                            };
                             if (authmethod !== "none") {
-                                options = {
-                                    transports: [{
-                                        url: address,
-                                        type: 'websocket'
-                                    }],
-                                    realm: realm,
-                                    retry_if_unreachable: true,
-                                    max_retries: -1,
-                                    authmethods: [authmethod],
-                                    authid: authid,
-                                    onchallenge: function () {
-                                        return secret;
-                                    }
-                                };
-                            } else {
-                                options = {
-                                    transports: [{
-                                        url: address,
-                                        type: 'websocket'
-                                    }],
-                                    realm: realm,
-                                    retry_if_unreachable: true,
-                                    max_retries: -1,
+                                options.authmethods = [authmethod];
+                                options.authid = authid;
+                                options.onchallenge = function () {
+                                    return secret;
                                 };
                             }
                             obj.wampConnection = new autobahn.Connection(options);
@@ -343,28 +365,29 @@ module.exports = function (RED) {
                                 obj._emitter.emit("ready");
 
                                 obj._subscribeMap = {};
-                                for (var topic in obj._subscribeReqMap) {
-                                    var subscribeReq = obj._subscribeReqMap[topic];
-                                    obj.wampSession.subscribe(topic, subscribeReq.handler, subscribeReq.opts).then(
+                                for (const id in obj._subscribeReqMap) {
+                                    var subscribeReq = obj._subscribeReqMap[id];
+                                    obj.wampSession.subscribe(subscribeReq.topic, subscribeReq.handler, subscribeReq.options).then(
                                         function (subscription) {
                                             obj._subscribeMap[id] = subscription;
-                                            RED.log.info("wamp subscribe node [" + id + "], topic [" + obj._subscribeReqMap[id].topic + " (" + obj._subscribeReqMap[id].options.match + ")] success.");
+                                            RED.log.info("wamp subscribe node [" + id + "], topic [" + subscribeReq.topic + " (" + subscribeReq.options.match + ")] success.");
                                         },
                                         function (err) {
-                                            RED.log.warn("wamp subscribe node [" + id + "], topic [" + obj._subscribeReqMap[id].topic + " (" + obj._subscribeReqMap[id].options.match + ")] failed: " + err);
+                                            RED.log.warn("wamp subscribe node [" + id + "], topic [" + subscribeReq.topic + " (" + subscribeReq.options.match + ")] failed: " + err);
                                         }
                                     )
                                 }
 
                                 obj._procedureMap = {};
                                 for (const id in obj._procedureReqMap) {
-                                    obj.wampSession.register(obj._procedureReqMap[id].procedure, obj._procedureReqMap[id].handler, obj._procedureReqMap[id].options).then(
+                                    var procedureReq = obj._procedureReqMap[id];
+                                    obj.wampSession.register(procedureReq.procedure, procedureReq.handler, procedureReq.options).then(
                                         function (registration) {
                                             obj._procedureMap[id] = registration;
-                                            RED.log.info("wamp register node [" + id + "], procedure [" + obj._procedureReqMap[id].procedure + " (" + obj._procedureReqMap[id].options.match + ")] success.");
+                                            RED.log.info("wamp register node [" + id + "], procedure [" + procedureReq.procedure + " (" + procedureReq.options.match + ")] success.");
                                         },
                                         function (err) {
-                                            RED.log.warn("wamp register node [" + id + "], procedure [" + obj._procedureReqMap[id].procedure + " (" + obj._procedureReqMap[id].options.match + ")] failed: " + err.error);
+                                            RED.log.warn("wamp register node [" + id + "], procedure [" + procedureReq.procedure + " (" + procedureReq.options.match + ")] failed: " + err.error);
                                         }
                                     )
                                 }
@@ -406,4 +429,5 @@ module.exports = function (RED) {
             }
         }
     }());
+    // #endregion
 }

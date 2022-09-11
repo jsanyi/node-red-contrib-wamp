@@ -35,33 +35,33 @@
 </script>
 
 <script type="text/javascript">
-    RED.nodes.registerType('wamp in',{
-        category: 'input',      // the palette category
+    RED.nodes.registerType('wamp in', {
+        category: 'network',      // the palette category
         defaults: {             // defines the editable properties of the node
-            role: {value: "subscriber", required: true},
-            router: {type: "wamp-client", required: true},
-            topic: {value:"", required: true},
-            match: {value:"exact"},
-            name: {value:""}
+            role: { value: "subscriber", required: true },
+            router: { type: "wamp-client", required: true },
+            topic: { value: "", required: true },
+            match: { value: "exact" },
+            name: { value: "" }
         },
-        color:"#79d8bf",
-        inputs:0,               // set the number of inputs - only 0 or 1
-        outputs:1,              // set the number of outputs - 0 to n
+        color: "#79d8bf",
+        inputs: 0,               // set the number of inputs - only 0 or 1
+        outputs: 1,              // set the number of outputs - 0 to n
         // set the icon (held in icons dir below where you save the node)
         icon: "bridge.png",     // saved in  icons/myicon.png
-        label: function() {     // sets the default label contents
+        label: function () {     // sets the default label contents
             var wampNode = RED.nodes.node(this.router);
             return this.name || this.topic || (wampNode ? wampNode.label() : this._("wamp.label.wamp"));
         },
-        labelStyle: function() { // sets the class to apply to the label
-            return this.name?"node_label_italic":"";
+        labelStyle: function () { // sets the class to apply to the label
+            return this.name ? "node_label_italic" : "";
         },
-        oneditprepare: function(){
+        oneditprepare: function () {
             var $selectRole = $('#node-input-role');
             var $matchRow = $('#node-input-match').closest('.form-row');
-            $selectRole.change( function(){
+            $selectRole.change(function () {
                 var role = $selectRole.val();
-                $matchRow.toggle( role == 'subscriber' );
+                $matchRow.toggle(role == 'subscriber');
             });
         }
     });
@@ -98,28 +98,28 @@
 </script>
 
 <script type="text/javascript">
-    RED.nodes.registerType('wamp out',{
-        category: 'output',      // the palette category
+    RED.nodes.registerType('wamp out', {
+        category: 'network',      // the palette category
         defaults: {             // defines the editable properties of the node
-            role: {value: "publisher", required: true},
-            router: {type: "wamp-client", required: true},
-            topic: {value:"", required: false},
-            topicType: {value:"str", required: false},
-            name: {value:""}
+            role: { value: "publisher", required: true },
+            router: { type: "wamp-client", required: true },
+            topic: { value: "", required: false },
+            topicType: { value: "str", required: false },
+            name: { value: "" }
         },
-        color:"#79d8bf",
-        inputs:1,
-        outputs:0,
+        color: "#79d8bf",
+        inputs: 1,
+        outputs: 0,
         icon: "white-globe.png",
         align: "right",
-        label: function() {     // sets the default label contents
+        label: function () {     // sets the default label contents
             var wampNode = RED.nodes.node(this.router);
             return this.name || this.topic || (wampNode ? wampNode.label() : this._("wamp.label.wamp"));
         },
-        labelStyle: function() { // sets the class to apply to the label
-            return this.name?"node_label_italic":"";
+        labelStyle: function () { // sets the class to apply to the label
+            return this.name ? "node_label_italic" : "";
         },
-        oneditprepare: function(){
+        oneditprepare: function () {
             $('#node-input-topic').typedInput({
                 default: "str",
                 types: ["flow", "global", "msg", "str", "jsonata"],
@@ -149,72 +149,27 @@
 <script type="text/x-red" data-help-name="wamp call">
    <p>Provides a connection to other WAMP client.</p>
    <p>Only the <code>msg.payload</code> is sent.</p>
-
-   
-   <h3>Inputs</h3>
-       <dl class="message-properties">
-           <dt>payload
-               <span class="property-type">string | buffer</span>
-           </dt>
-           <dd> the payload of the message to publish. </dd>
-           <dt class="optional">topic <span class="property-type">string</span></dt>
-           <dd> the MQTT topic to publish to.</dd>
-       </dl>
-   
-    <h3>Outputs</h3>
-        <ol class="node-ports">
-            <li>Standard output
-                <dl class="message-properties">
-                    <dt>payload <span class="property-type">string</span></dt>
-                    <dd>the standard output of the command.</dd>
-                </dl>
-            </li>
-            <li>Standard error
-                <dl class="message-properties">
-                    <dt>payload <span class="property-type">string</span></dt>
-                    <dd>the standard error of the command.</dd>
-                </dl>
-            </li>
-        </ol>
-   
-   <h3>Details</h3>
-       <p><code>msg.payload</code> is used as the payload of the published message.
-       If it contains an Object it will be converted to a JSON string before being sent.
-       If it contains a binary Buffer the message will be published as-is.</p>
-       <p>The topic used can be configured in the node or, if left blank, can be set
-       by <code>msg.topic</code>.</p>
-       <p>Likewise the QoS and retain values can be configured in the node or, if left
-       blank, set by <code>msg.qos</code> and <code>msg.retain</code> respectively.</p>
-   
-   <h3>References</h3>
-       <ul>
-           <li><a>Twitter API docs</a> - full description of <code>msg.tweet</code> property</li>
-           <li><a>GitHub</a> - the nodes github repository</li>
-       </ul>
-   </script>
-
-
 </script>
 
 <script type="text/javascript">
-    RED.nodes.registerType('wamp call',{
+    RED.nodes.registerType('wamp call', {
         category: 'function',      // the palette category
         defaults: {             // defines the editable properties of the node
-            router: {type: "wamp-client", required: true},
-            procedure: {value:"", required: true},
-            name: {value:""}
+            router: { type: "wamp-client", required: true },
+            procedure: { value: "", required: true },
+            name: { value: "" }
         },
-        color:"#79d8bf",
-        inputs:1,
-        outputs:1,
+        color: "#79d8bf",
+        inputs: 1,
+        outputs: 1,
         icon: "arrow-in.png",
         align: "right",
-        label: function() {
+        label: function () {
             var wampNode = RED.nodes.node(this.router);
             return this.name || this.procedure || (wampNode ? wampNode.label() : this._("wamp.label.wamp"));
         },
-        labelStyle: function() { // sets the class to apply to the label
-            return this.name?"node_label_italic":"";
+        labelStyle: function () { // sets the class to apply to the label
+            return this.name ? "node_label_italic" : "";
         }
     });
 </script>
@@ -244,122 +199,30 @@
         <label for="node-config-input-secret">Secret</label>
         <input type="password" id="node-config-input-secret">
     </div>
+    <div class="form-row">
+        <label for="node-config-input-maxretrydelay">MaxRetryDelay</label>
+        <input type="text" id="node-config-input-maxretrydelay">
+    </div>
 </script>
 
 
 <script type="text/x-red" data-help-name="wamp-client">
     <p>WAMP client configuration</p>
-    <p>Only the <code>msg.payload</code> is sent.</p>
- 
-    
-    <h3>Inputs</h3>
-        <dl class="message-properties">
-            <dt>payload
-                <span class="property-type">string | buffer</span>
-            </dt>
-            <dd> the payload of the message to publish. </dd>
-            <dt class="optional">topic <span class="property-type">string</span></dt>
-            <dd> the MQTT topic to publish to.</dd>
-        </dl>
-    
-     <h3>Outputs</h3>
-         <ol class="node-ports">
-             <li>Standard output
-                 <dl class="message-properties">
-                     <dt>payload <span class="property-type">string</span></dt>
-                     <dd>the standard output of the command.</dd>
-                 </dl>
-             </li>
-             <li>Standard error
-                 <dl class="message-properties">
-                     <dt>payload <span class="property-type">string</span></dt>
-                     <dd>the standard error of the command.</dd>
-                 </dl>
-             </li>
-         </ol>
-    
-    <h3>Details</h3>
-        <p><code>msg.payload</code> is used as the payload of the published message.
-        If it contains an Object it will be converted to a JSON string before being sent.
-        If it contains a binary Buffer the message will be published as-is.</p>
-        <p>The topic used can be configured in the node or, if left blank, can be set
-        by <code>msg.topic</code>.</p>
-        <p>Likewise the QoS and retain values can be configured in the node or, if left
-        blank, set by <code>msg.qos</code> and <code>msg.retain</code> respectively.</p>
-    
-    <h3>References</h3>
-        <ul>
-            <li><a>Twitter API docs</a> - full description of <code>msg.tweet</code> property</li>
-            <li><a>GitHub</a> - the nodes github repository</li>
-        </ul>
-    </script>
- 
- 
- </script>
-
-
-<script type="text/x-red" data-help-name="wamp-client">
-    <p>WAMP client configuration</p>
-    <p>Only the <code>msg.payload</code> is sent.</p>
- 
-    
-    <h3>Inputs</h3>
-        <dl class="message-properties">
-            <dt>payload
-                <span class="property-type">string | buffer</span>
-            </dt>
-            <dd> the payload of the message to publish. </dd>
-            <dt class="optional">topic <span class="property-type">string</span></dt>
-            <dd> the MQTT topic to publish to.</dd>
-        </dl>
-    
-     <h3>Outputs</h3>
-         <ol class="node-ports">
-             <li>Standard output
-                 <dl class="message-properties">
-                     <dt>payload <span class="property-type">string</span></dt>
-                     <dd>the standard output of the command.</dd>
-                 </dl>
-             </li>
-             <li>Standard error
-                 <dl class="message-properties">
-                     <dt>payload <span class="property-type">string</span></dt>
-                     <dd>the standard error of the command.</dd>
-                 </dl>
-             </li>
-         </ol>
-    
-    <h3>Details</h3>
-        <p><code>msg.payload</code> is used as the payload of the published message.
-        If it contains an Object it will be converted to a JSON string before being sent.
-        If it contains a binary Buffer the message will be published as-is.</p>
-        <p>The topic used can be configured in the node or, if left blank, can be set
-        by <code>msg.topic</code>.</p>
-        <p>Likewise the QoS and retain values can be configured in the node or, if left
-        blank, set by <code>msg.qos</code> and <code>msg.retain</code> respectively.</p>
-    
-    <h3>References</h3>
-        <ul>
-            <li><a>Twitter API docs</a> - full description of <code>msg.tweet</code> property</li>
-            <li><a>GitHub</a> - the nodes github repository</li>
-        </ul>
-    </script>
- 
- 
- </script>
+</script>
 
 <script type="text/javascript">
-    RED.nodes.registerType('wamp-client',{
+    RED.nodes.registerType('wamp-client', {
         category: 'config',      // the palette category
         defaults: {             // defines the editable properties of the node
             address: { required: true },
             realm: { required: true },
             authmethod: { value: "anonymous", required: true },
             authid: {},
-            secret: {}
+            secret: {},
+            maxretrydelay: { value: 300, validate: RED.validators.number() }
         },
-        label: function() {     // sets the default label contents
-            return (this.name?this.name:this.realm+"@"+this.address);
+        label: function () {     // sets the default label contents
+            return (this.name ? this.name : this.realm + "@" + this.address);
         }
     });
 </script>

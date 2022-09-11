@@ -3,13 +3,12 @@
     "label": {
       "wamp": "wamp",
       "role": "Role",
-      "match": "Topic match",
       "subscriber": {
         "role": {
           "subscriber": "Subscriber",
           "calleeReceiver": "Callee Receiver"
         },
-        "match":{
+        "match": {
           "exact": "Equals",
           "prefix": "Starts with",
           "wildcard": "Wildcard"
@@ -24,7 +23,6 @@
       "router": "Router",
       "destination": "Destination",
       "match": "Match",
-      "getretained": "Get retained",
       "procedure": "Procedure",
       "realm": "Realm"
     },
@@ -36,8 +34,8 @@
         "destination": "topic or procedure"
       },
       "procedure": "procedure",
-      "router": "ws://127.0.0.1:9995/",
-      "realm": "realm01"
+      "router": "ws://127.0.0.1:8080/ws",
+      "realm": "realm1"
     }
   }
 }
